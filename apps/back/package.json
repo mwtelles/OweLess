@@ -1,0 +1,29 @@
+{
+    "name": "oweless-back",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "bun run src/index.ts",
+        "build": "bun build src/index.ts --outdir dist --target bun",
+        "start": "bun run dist/index.js",
+        "migrate:generate": "bunx drizzle-kit generate",
+        "migrate:push": "bunx drizzle-kit push",
+        "migrate:studio": "bunx drizzle-kit studio",
+        "lint": "bunx eslint ."
+    },
+    "dependencies": {
+        "dotenv": "^16.4.5",
+        "drizzle-orm": "^0.33.0",
+        "elysia": "^1.0.0",
+        "jose": "^5.9.3",
+        "postgres": "^3.4.4",
+        "zod": "^4.0.17"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.2.19",
+        "@types/node": "^20.14.9",
+        "drizzle-kit": "^0.23.0",
+        "eslint": "^9.7.0",
+        "typescript": "^5.5.4"
+    }
+}
