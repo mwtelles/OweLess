@@ -58,7 +58,7 @@ type Installment = {
 
 const route = useRoute()
 const debtId = Number(route.params.id)
-const { $api } = useNuxtApp()
+const { $api, $t } = useNuxtApp()
 const toast = useToast()
 
 const loading = ref(false)
@@ -197,7 +197,7 @@ onMounted(async () => {
             <h1>Debt Summary #{{ debtId }}</h1>
             <div class="actions">
                 <Button label="Installments" @click="toInstallments" />
-                <Button label="Back" severity="secondary" @click="back" />
+                <Button :label="$t('common.back')" severity="secondary" @click="back" />
             </div>
         </header>
 

@@ -18,9 +18,9 @@ onMounted(async () => {
 
 <template>
     <main style="max-width:720px;margin:64px auto;padding:24px">
-        <h1>My Account</h1>
+        <h1>{{ $t('profile.myAccount') }}</h1>
         <pre v-if="me">{{ me }}</pre>
         <p v-else-if="errorMsg" style="color:#c00">{{ errorMsg }}</p>
-        <button @click="auth.logout()">Logout</button>
+        <button @click="auth.logout()">{{ $t('auth.logout') }}</button>
     </main>
 </template>

@@ -135,37 +135,37 @@ onMounted(loadDashboard)
     <div class="page">
         <Toast />
         <header class="page-header">
-            <h1>Dashboard</h1>
+            <h1>{{ $t('dashboard.title') }}</h1>
             <div class="actions">
-                <Button label="New Debt" @click="navigateTo('/debts')" />
+                <Button label="{{ $t('debts.newDebt') }}" @click="navigateTo('/debts')" />
             </div>
         </header>
 
-        <div v-if="loading">Loading...</div>
-        <div v-else-if="!data">No data</div>
+        <div v-if="loading">{{ $t('common.loading') }}</div>
+        <div v-else-if="!data">{{ $t('common.noData') }}</div>
 
         <div v-else class="grid">
             <!-- KPIs -->
             <Card class="card">
-                <template #title>Total Expected</template>
+                <template #title>{{ $t('summary.totalExpected') }}</template>
                 <template #content>
                     <div class="kpi">{{ fmtMoney(k.totalExpected) }}</div>
                 </template>
             </Card>
             <Card class="card">
-                <template #title>Total Paid</template>
+                <template #title>{{ $t('summary.totalPaid') }}</template>
                 <template #content>
                     <div class="kpi">{{ fmtMoney(k.totalPaid) }}</div>
                 </template>
             </Card>
             <Card class="card">
-                <template #title>Remaining Principal</template>
+                <template #title>{{ $t('summary.remainingPrincipal') }}</template>
                 <template #content>
                     <div class="kpi">{{ fmtMoney(k.remainingPrincipal) }}</div>
                 </template>
             </Card>
             <Card class="card">
-                <template #title>Overdue</template>
+                <template #title>{{ $t('summary.overdueCount') }}</template>
                 <template #content>
                     <div class="kpi">{{ k.overdueCount }}</div>
                 </template>
@@ -173,7 +173,7 @@ onMounted(loadDashboard)
 
             <!-- Doughnut: paid breakdown -->
             <Card class="card span-2">
-                <template #title>Paid Breakdown</template>
+                <template #title>{{ $t('dashboard.paidBreakdown') }}</template>
                 <template #content>
                     <div class="chart-box">
                         <Chart type="doughnut" :data="chPaidBreakdown" :options="chartOpts" />
@@ -183,7 +183,7 @@ onMounted(loadDashboard)
 
             <!-- Bar: remaining by debt -->
             <Card class="card span-2">
-                <template #title>Remaining by Debt (Top 10)</template>
+                <template #title>{{ $t('dashboard.remainingByDebt') }}</template>
                 <template #content>
                     <div class="chart-box">
                         <Chart type="bar" :data="chRemainingByDebt" :options="chartOpts" />
@@ -193,7 +193,7 @@ onMounted(loadDashboard)
 
             <!-- Bar: expected vs paid by debt -->
             <Card class="card span-2">
-                <template #title>Expected vs Paid by Debt (Top 10)</template>
+                <template #title>{{ $t('dashboard.expectedVsPaid') }}</template>
                 <template #content>
                     <div class="chart-box">
                         <Chart type="bar" :data="chExpectedPaidByDebt" :options="chartOpts" />
@@ -203,18 +203,18 @@ onMounted(loadDashboard)
 
             <!-- Upcoming dues -->
             <Card class="card span-2">
-                <template #title>Upcoming dues</template>
+                <template #title>{{ $t('dashboard.upcomingDues') }}</template>
                 <template #content>
                     <DataTable :value="upcoming">
-                        <Column field="debtTitle" header="Debt" />
+                        <Column field="debtTitle" header="{{ $t('debts.title') }}" />
                         <Column field="number" header="#" />
-                        <Column field="dueDate" header="Due"
+                        <Column field="dueDate" header="{{ $t('summary.nextDue') }}"
                             :body="({ data }: { data: Upcoming }) => new Date(data.dueDate).toLocaleDateString()" />
-                        <Column field="expectedTotal" header="Amount"
+                        <Column field="expectedTotal" header="{{ $t('payments.amount') }}"
                             :body="({ data }: { data: Upcoming }) => fmtMoney(data.expectedTotal)" />
-                        <Column header="Actions">
+                        <Column header="{{ $t('common.actions') }}">
                             <template #body="{ data }">
-                                <Button label="Open" @click="gotoDebt(data.debtId)" />
+                                <Button label="{{ $t('common.open') }}" @click="gotoDebt(data.debtId)" />
                             </template>
                         </Column>
                     </DataTable>

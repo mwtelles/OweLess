@@ -1,21 +1,20 @@
-<!-- apps/front/pages/login.vue -->
 <template>
     <div class="card">
         <Toast />
-        <h2>Login</h2>
+        <h2>{{ $t('auth.login') }}</h2>
 
         <form @submit.prevent="onSubmit">
-            <label>Email</label>
+            <label>{{ $t('auth.email') }}</label>
             <InputText v-model="email" type="email" required fluid />
 
-            <label>Password</label>
+            <label>{{ $t('auth.password') }}</label>
             <Password v-model="password" :feedback="false" toggleMask fluid required />
 
-            <Button type="submit" :loading="loading" label="Sign in" fluid class="mt-4" />
+            <Button type="submit" :loading="loading" :label="$t('auth.login')" fluid class="mt-4" />
 
             <p class="hint">
-                No account?
-                <NuxtLink to="/register">Register</NuxtLink>
+                {{ $t('auth.noAccount') }}
+                <NuxtLink to="/register">{{ $t('auth.register') }}</NuxtLink>
             </p>
         </form>
     </div>
@@ -28,7 +27,7 @@ import { useToast } from 'primevue/usetoast'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
-
+const { $t } = useNuxtApp()
 const auth = useAuthStore()
 const toast = useToast()
 

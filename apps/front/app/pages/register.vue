@@ -1,18 +1,18 @@
 <template>
     <div class="card">
         <Toast />
-        <h2>Create account</h2>
+        <h2>{{ $t('auth.createAccount') }}</h2>
         <form @submit.prevent="onSubmit">
-            <label>Email</label>
+            <label>{{ $t('auth.email') }}</label>
             <input v-model="email" type="email" required />
-            <label>Password</label>
+            <label>{{ $t('auth.password') }}</label>
             <input v-model="password" type="password" required />
             <button :disabled="loading" type="submit">
-                {{ loading ? 'Creating...' : 'Create account' }}
+                {{ loading ? $t('auth.creating') : $t('auth.createAccount') }}
             </button>
             <p class="hint">
-                Already have an account?
-                <NuxtLink to="/login">Login</NuxtLink>
+                {{ $t('auth.alreadyHaveAccount') }}
+                <NuxtLink to="/login">{{ $t('auth.login') }}</NuxtLink>
             </p>
         </form>
     </div>
