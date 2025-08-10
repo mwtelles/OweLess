@@ -25,4 +25,4 @@ COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
 
 EXPOSE 1313
 
-CMD ["sh", "-c", "bunx drizzle-kit migrate --config=drizzle.config.ts && bun run dist/index.js"]
+CMD ["sh", "-c", "bun drizzle-kit migrate --config=drizzle.config.ts && bun run dist/index.js"]
