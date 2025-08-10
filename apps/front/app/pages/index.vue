@@ -137,7 +137,9 @@ onMounted(loadDashboard)
         <header class="page-header">
             <h1>{{ $t('dashboard.title') }}</h1>
             <div class="actions">
-                <Button label="{{ $t('debts.newDebt') }}" @click="navigateTo('/debts')" />
+                <Button @click="navigateTo('/debts')">
+                    {{ $t('debts.newDebt') }}
+                </Button>
             </div>
         </header>
 
@@ -206,18 +208,21 @@ onMounted(loadDashboard)
                 <template #title>{{ $t('dashboard.upcomingDues') }}</template>
                 <template #content>
                     <DataTable :value="upcoming">
-                        <Column field="debtTitle" header="{{ $t('debts.title') }}" />
+                        <Column field="debtTitle" :header="$t('debts.title')" />
                         <Column field="number" header="#" />
-                        <Column field="dueDate" header="{{ $t('summary.nextDue') }}"
+                        <Column field="dueDate" :header="$t('summary.nextDue')"
                             :body="({ data }: { data: Upcoming }) => new Date(data.dueDate).toLocaleDateString()" />
-                        <Column field="expectedTotal" header="{{ $t('payments.amount') }}"
+                        <Column field="expectedTotal" :header="$t('payments.amount')"
                             :body="({ data }: { data: Upcoming }) => fmtMoney(data.expectedTotal)" />
-                        <Column header="{{ $t('common.actions') }}">
+                        <Column :header="$t('common.actions')">
                             <template #body="{ data }">
-                                <Button label="{{ $t('common.open') }}" @click="gotoDebt(data.debtId)" />
+                                <Button @click="gotoDebt(data.debtId)">
+                                    {{ $t('common.open') }}
+                                </Button>
                             </template>
                         </Column>
                     </DataTable>
+
                 </template>
             </Card>
         </div>

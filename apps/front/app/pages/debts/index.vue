@@ -31,7 +31,7 @@ type Debt = {
     isClosed?: boolean
 }
 
-const { $api } = useNuxtApp()
+const { $api, $t } = useNuxtApp()
 const toast = useToast()
 
 const loading = ref(false)
@@ -69,16 +69,17 @@ const form = ref<{
     monthlyFees: 0
 })
 
-const rateTypeOptions = [
-    { label: 'Fixed (year)', value: 'fixed_nominal_year' },
-    { label: 'Fixed (month)', value: 'fixed_nominal_month' },
-    { label: 'Indexed', value: 'indexed_variable' }
-]
+/** Opções com labels traduzidas e reativas ao idioma */
+const rateTypeOptions = computed(() => ([
+    { label: $t('debts.rateTypeFixedYear'), value: 'fixed_nominal_year' },
+    { label: $t('debts.rateTypeFixedMonth'), value: 'fixed_nominal_month' },
+    { label: $t('debts.rateTypeIndexed'), value: 'indexed_variable' }
+]))
 
-const amortOptions = [
+const amortOptions = computed(() => ([
     { label: 'PRICE', value: 'PRICE' },
     { label: 'SAC', value: 'SAC' }
-]
+]))
 
 const showYearRate = computed(() => form.value.rateType === 'fixed_nominal_year')
 const showMonthRate = computed(() => form.value.rateType === 'fixed_nominal_month')
@@ -94,7 +95,11 @@ async function loadDebts() {
             monthlyFees: typeof d.monthlyFees === 'string' ? parseFloat(d.monthlyFees) : d.monthlyFees
         }))
     } catch (e: any) {
-        toast.add({ severity: 'error', summary: 'Debts', detail: e?.response?.data?.error || 'Failed to load debts' })
+        toast.add({
+            severity: 'error',
+            summary: $t('debts.title'),
+            detail: e?.response?.data?.error || $t('errors.failedLoadDebts')
+        })
     } finally {
         loading.value = false
     }
@@ -103,11 +108,10 @@ async function loadDebts() {
 async function createDebt() {
     const f = form.value
     if (!f.title || !f.principal || !f.termMonths || !f.startDate) {
-        toast.add({ severity: 'warn', summary: 'Validation', detail: 'Fill required fields.' })
+        toast.add({ severity: 'warn', summary: $t('validation.title'), detail: $t('validation.requiredFields') })
         return
     }
 
-    // monta payload conforme rateType
     const payload: any = {
         title: f.title,
         principal: f.principal,
@@ -126,7 +130,7 @@ async function createDebt() {
     try {
         await $api.post('/debts', payload)
         showCreate.value = false
-        toast.add({ severity: 'success', summary: 'Debt', detail: 'Debt created' })
+        toast.add({ severity: 'success', summary: $t('debts.single'), detail: $t('debts.created') })
         await loadDebts()
         // reset
         form.value = {
@@ -144,7 +148,11 @@ async function createDebt() {
             monthlyFees: 0
         }
     } catch (e: any) {
-        toast.add({ severity: 'error', summary: 'Debt', detail: e?.response?.data?.error || 'Failed to create debt' })
+        toast.add({
+            severity: 'error',
+            summary: $t('debts.single'),
+            detail: e?.response?.data?.error || $t('errors.failedCreateDebt')
+        })
     }
 }
 
@@ -161,99 +169,102 @@ onMounted(loadDebts)
 <template>
     <div class="page">
         <Toast />
+
         <header class="page-header">
-            <h1>Debts</h1>
-            <Button label="New Debt" @click="showCreate = true" />
+            <h1>{{ $t('debts.title') }}</h1>
+            <Button :label="$t('debts.newDebt')" @click="showCreate = true" />
         </header>
 
         <DataTable :value="debts" :loading="loading" dataKey="id" class="w-100">
-            <Column field="title" header="Title" />
-            <Column field="principal" header="Principal" :body="({ data }: { data: Debt }) =>
+            <Column field="title" :header="$t('common.title')" />
+            <Column field="principal" :header="$t('debts.principal')" :body="({ data }: { data: Debt }) =>
                 (typeof data.principal === 'number' ? data.principal.toLocaleString() : data.principal)" />
-            <Column field="amortizationSystem" header="System" />
-            <Column field="termMonths" header="Term (mo)" />
-            <Column field="startDate" header="Start"
+            <Column field="amortizationSystem" :header="$t('debts.amortization')" />
+            <Column field="termMonths" :header="$t('debts.termMonths')" />
+            <Column field="startDate" :header="$t('debts.startDate')"
                 :body="({ data }: { data: Debt }) => new Date(data.startDate).toLocaleDateString()" />
-            <Column header="Actions">
+            <Column :header="$t('common.actions')">
                 <template #body="{ data }">
-                    <Button label="Summary" class="mr" @click="goSummary(data)" />
-                    <Button label="Installments" @click="goInstallments(data)" />
+                    <Button class="mr" :label="$t('debts.summary')" @click="goSummary(data)" />
+                    <Button :label="$t('debts.installments')" @click="goInstallments(data)" />
                 </template>
             </Column>
         </DataTable>
 
-        <Dialog v-model:visible="showCreate" header="Create Debt" modal :style="{ width: '520px' }">
+        <Dialog v-model:visible="showCreate" :header="$t('debts.createDebt')" modal :style="{ width: '520px' }">
             <div class="form-row">
-                <label>Title *</label>
+                <label>{{ $t('common.title') }} *</label>
                 <InputText v-model="form.title" class="w-100" />
             </div>
 
             <div class="form-row">
-                <label>Principal *</label>
+                <label>{{ $t('debts.principal') }} *</label>
                 <InputNumber v-model="form.principal" class="w-100" :min="0" mode="currency" currency="USD"
                     locale="en-US" />
             </div>
 
             <div class="form-row">
-                <label>Rate type *</label>
+                <label>{{ $t('debts.rateType') }} *</label>
                 <Dropdown v-model="form.rateType" :options="rateTypeOptions" optionLabel="label" optionValue="value"
                     class="w-100" />
             </div>
 
             <div class="form-row" v-if="showYearRate">
-                <label>Nominal rate (year)</label>
+                <label>{{ $t('debts.nominalYear') }}</label>
                 <InputNumber v-model="form.nominalRateYear" :min="0" :max="1" :step="0.001" suffix=" (fraction)"
                     class="w-100" />
-                <small>Ex.: 0.145 = 14.5%/year</small>
+                <small>{{ $t('debts.examples.nominalYear') }}</small>
             </div>
+
             <div class="form-row" v-if="showMonthRate">
-                <label>Nominal rate (month)</label>
+                <label>{{ $t('debts.nominalMonth') }}</label>
                 <InputNumber v-model="form.nominalRateMonth" :min="0" :max="1" :step="0.001" suffix=" (fraction)"
                     class="w-100" />
-                <small>Ex.: 0.012 = 1.2%/month</small>
+                <small>{{ $t('debts.examples.nominalMonth') }}</small>
             </div>
+
             <div class="form-row" v-if="showSpread">
-                <label>Spread (indexed)</label>
+                <label>{{ $t('debts.spread') }}</label>
                 <InputNumber v-model="form.spreadRate" :min="0" :max="1" :step="0.001" suffix=" (fraction)"
                     class="w-100" />
-                <small>Ex.: 0.03 = +3% over index</small>
+                <small>{{ $t('debts.examples.spread') }}</small>
             </div>
 
             <div class="form-row">
-                <label>Amortization *</label>
+                <label>{{ $t('debts.amortization') }} *</label>
                 <SelectButton v-model="form.amortizationSystem" :options="amortOptions" optionLabel="label"
                     optionValue="value" />
             </div>
 
             <div class="form-row">
-                <label>Term (months) *</label>
+                <label>{{ $t('debts.termMonths') }} *</label>
                 <InputNumber v-model="form.termMonths" class="w-100" :min="1" :max="600" />
             </div>
 
             <div class="form-row">
-                <label>Payment day</label>
+                <label>{{ $t('debts.paymentDay') }}</label>
                 <InputNumber v-model="form.paymentDay" class="w-100" :min="1" :max="28" />
             </div>
 
             <div class="form-row">
-                <label>Start date *</label>
+                <label>{{ $t('debts.startDate') }} *</label>
                 <Calendar v-model="form.startDate" class="w-100" dateFormat="yy-mm-dd" />
             </div>
 
             <div class="form-row">
-                <label>Grace (months)</label>
+                <label>{{ $t('debts.graceMonths') }}</label>
                 <InputNumber v-model="form.graceMonths" class="w-100" :min="0" :max="60" />
             </div>
 
             <div class="form-row">
-                <label>Monthly fees</label>
+                <label>{{ $t('debts.monthlyFees') }}</label>
                 <InputNumber v-model="form.monthlyFees" class="w-100" mode="currency" currency="USD" locale="en-US"
                     :min="0" />
             </div>
 
             <template #footer>
-                <Button label="Cancel" severity="secondary" @click="showCreate = false" />
-                <Button label="Create" @click="createDebt" />
+                <Button :label="$t('common.cancel')" severity="secondary" @click="showCreate = false" />
+                <Button :label="$t('common.saveCreate')" @click="createDebt" />
             </template>
         </Dialog>
     </div>

@@ -65,6 +65,26 @@ const loading = ref(false)
 const data = ref<SummaryResp | null>(null)
 const installments = ref<Installment[]>([])
 
+// status e mapas opcionais
+const statusLabel = computed(() => ({
+    pending: $t('status.pending'),
+    paid: $t('status.paid'),
+    overdue: $t('status.overdue'),
+    partially_paid: $t('status.partially_paid')
+}))
+const rateTypeLabel = computed(() => ({
+    fixed_nominal_year: $t('debts.rateTypeFixedYear'),
+    fixed_nominal_month: $t('debts.rateTypeFixedMonth'),
+    indexed_variable: $t('debts.rateTypeIndexed')
+}))
+const debtTypeLabel = computed(() => ({
+    loan: $t('debts.types.loan'),
+    financing: $t('debts.types.financing'),
+    student: $t('debts.types.student'),
+    credit_card: $t('debts.types.credit_card'),
+    other: $t('debts.types.other')
+}))
+
 // charts
 const chRemaining = ref<any>(null)
 const chPaidExpected = ref<any>(null)
@@ -107,7 +127,6 @@ async function loadSummary() {
 }
 
 async function loadInstallmentsForCharts() {
-    // pega bastante para cobrir a série inteira
     const res = await $api.get('/installments', { params: { debtId, page: 1, pageSize: 200, order: 'asc' } })
     const items = (res.data?.items ?? []) as Installment[]
     installments.value = items.map((i) => ({
@@ -135,7 +154,7 @@ function prepareCharts() {
     chRemaining.value = {
         labels: labs,
         datasets: [
-            { label: 'Remaining Principal', data: remaining, fill: false, tension: 0.2 }
+            { label: $t('summary.chart.remainingPrincipal'), data: remaining, fill: false, tension: 0.2 }
         ]
     }
 
@@ -153,12 +172,12 @@ function prepareCharts() {
     chPaidExpected.value = {
         labels: labs,
         datasets: [
-            { label: 'Expected (cum.)', data: seriesExpected, fill: false, tension: 0.2 },
-            { label: 'Paid (cum.)', data: seriesPaid, fill: false, tension: 0.2 }
+            { label: $t('summary.chart.expectedCum'), data: seriesExpected, fill: false, tension: 0.2 },
+            { label: $t('summary.chart.paidCum'), data: seriesPaid, fill: false, tension: 0.2 }
         ]
     }
 
-    // 3) Interest vs Principal (stacked bars) — recorte as primeiras 24 parcelas p/ leitura
+    // 3) Interest vs Principal (stacked bars) — primeiras 24 parcelas
     const slice = installments.value.slice(0, 24)
     const labsIP = slice.map(i => `#${i.number}`)
     const seriesInt = slice.map(i => num(i.expectedInterest))
@@ -166,8 +185,8 @@ function prepareCharts() {
     chIP.value = {
         labels: labsIP,
         datasets: [
-            { type: 'bar', label: 'Interest', data: seriesInt, stack: 'ip' },
-            { type: 'bar', label: 'Principal', data: seriesPrin, stack: 'ip' }
+            { type: 'bar', label: $t('summary.chart.interest'), data: seriesInt, stack: 'ip' },
+            { type: 'bar', label: $t('summary.chart.principal'), data: seriesPrin, stack: 'ip' }
         ]
     }
 }
@@ -176,14 +195,17 @@ function toInstallments() { navigateTo(`/debts/${debtId}/installments`) }
 function back() { navigateTo('/debts') }
 
 onMounted(async () => {
-    const t = toast
     try {
         loading.value = true
         await loadSummary()
         await loadInstallmentsForCharts()
         prepareCharts()
     } catch (e: any) {
-        t.add({ severity: 'error', summary: 'Summary', detail: e?.response?.data?.error || 'Failed to load data' })
+        toast.add({
+            severity: 'error',
+            summary: $t('summary.title'),
+            detail: e?.response?.data?.error || $t('errors.failedLoadSummary')
+        })
     } finally {
         loading.value = false
     }
@@ -194,43 +216,45 @@ onMounted(async () => {
     <div class="page">
         <Toast />
         <header class="page-header">
-            <h1>Debt Summary #{{ debtId }}</h1>
+            <h1>{{ $t('summary.titleDebt') + ' ' + debtId }}</h1>
             <div class="actions">
-                <Button label="Installments" @click="toInstallments" />
+                <Button :label="$t('debts.installments')" @click="toInstallments" />
                 <Button :label="$t('common.back')" severity="secondary" @click="back" />
             </div>
         </header>
 
-        <div v-if="loading">Loading...</div>
-        <div v-else-if="!data">No data</div>
+        <div v-if="loading">{{ $t('common.loading') }}</div>
+        <div v-else-if="!data">{{ $t('common.noData') }}</div>
+
         <div v-else class="grid">
             <!-- Debt info -->
             <Card class="card span-2">
                 <template #title>{{ data.debt.title }}</template>
                 <template #subtitle>
-                    {{ data.debt.type.toUpperCase() }} • {{ data.debt.amortizationSystem }} • Term: {{
-                        data.debt.termMonths }} mo
+                    {{ debtTypeLabel[data.debt.type] }} • {{ data.debt.amortizationSystem }} •
+                    {{ $t('debts.termLabel').replace('{months}', data.debt.termMonths).replace('{unit}',
+                        $t('common.monthsShort')) }}
                 </template>
                 <template #content>
                     <div class="info-grid">
                         <div>
-                            <div class="label">Principal</div>
+                            <div class="label">{{ $t('debts.principal') }}</div>
                             <div class="value">{{ fmtMoney(data.debt.principal) }}</div>
                         </div>
                         <div>
-                            <div class="label">Rate type</div>
-                            <div class="value">{{ data.debt.rateType }}</div>
+                            <div class="label">{{ $t('debts.rateType') }}</div>
+                            <div class="value">{{ rateTypeLabel[data.debt.rateType] }}</div>
                         </div>
                         <div v-if="data.debt.nominalRate != null">
-                            <div class="label">Nominal rate</div>
+                            <div class="label">{{ $t('debts.nominalRate') }}</div>
                             <div class="value">{{ (Number(data.debt.nominalRate) * 100).toFixed(2) }}%</div>
                         </div>
                         <div>
-                            <div class="label">Monthly fees</div>
+                            <div class="label">{{ $t('debts.monthlyFees') }}</div>
                             <div class="value">{{ fmtMoney(data.debt.monthlyFees) }}</div>
                         </div>
                         <div>
-                            <div class="label">Start date</div>
+                            <div class="label">{{ $t('debts.startDate') }}</div>
                             <div class="value">{{ new Date(data.debt.startDate).toLocaleDateString() }}</div>
                         </div>
                     </div>
@@ -239,29 +263,29 @@ onMounted(async () => {
 
             <!-- KPIs -->
             <Card class="card">
-                <template #title>Total Expected</template>
+                <template #title>{{ $t('summary.totalExpected') }}</template>
                 <template #content>
                     <div class="kpi">{{ fmtMoney(data.kpis.totalExpected) }}</div>
                 </template>
             </Card>
 
             <Card class="card">
-                <template #title>Total Paid</template>
+                <template #title>{{ $t('summary.totalPaid') }}</template>
                 <template #content>
                     <div class="kpi">{{ fmtMoney(data.kpis.totalPaid) }}</div>
-                    <div class="muted">{{ paidPct }} of expected</div>
+                    <div class="muted">{{ $t('summary.ofExpected').replace('{pct}', paidPct) }}</div>
                 </template>
             </Card>
 
             <Card class="card">
-                <template #title>Remaining Principal</template>
+                <template #title>{{ $t('summary.remainingPrincipal') }}</template>
                 <template #content>
                     <div class="kpi">{{ fmtMoney(data.kpis.remainingPrincipal) }}</div>
                 </template>
             </Card>
 
             <Card class="card">
-                <template #title>Overdue Count</template>
+                <template #title>{{ $t('summary.overdueCount') }}</template>
                 <template #content>
                     <div class="kpi">{{ data.kpis.overdueCount }}</div>
                 </template>
@@ -269,7 +293,7 @@ onMounted(async () => {
 
             <!-- Next due -->
             <Card class="card span-2" v-if="data.kpis.nextDue">
-                <template #title>Next Due</template>
+                <template #title>{{ $t('summary.nextDue') }}</template>
                 <template #content>
                     <div class="next-grid">
                         <div>
@@ -277,27 +301,27 @@ onMounted(async () => {
                             <div class="value">#{{ data.kpis.nextDue.number }}</div>
                         </div>
                         <div>
-                            <div class="label">Due date</div>
+                            <div class="label">{{ $t('installments.due') }}</div>
                             <div class="value">{{ new Date(data.kpis.nextDue.dueDate).toLocaleDateString() }}</div>
                         </div>
                         <div>
-                            <div class="label">Amount</div>
+                            <div class="label">{{ $t('payments.amount') }}</div>
                             <div class="value">{{ fmtMoney(data.kpis.nextDue.expectedTotal) }}</div>
                         </div>
                         <div>
-                            <div class="label">Status</div>
-                            <div class="value">{{ data.kpis.nextDue.status }}</div>
+                            <div class="label">{{ $t('installments.status') }}</div>
+                            <div class="value">{{ statusLabel[data.kpis.nextDue.status] }}</div>
                         </div>
                     </div>
                     <div class="mt">
-                        <Button label="Go pay" @click="toInstallments" />
+                        <Button :label="$t('summary.goPay')" @click="toInstallments" />
                     </div>
                 </template>
             </Card>
 
             <!-- Charts -->
             <Card class="card span-2">
-                <template #title>Remaining Principal over time</template>
+                <template #title>{{ $t('summary.chart.remainingTitle') }}</template>
                 <template #content>
                     <div class="chart-box">
                         <Chart type="line" :data="chRemaining" :options="chOptions" />
@@ -306,7 +330,7 @@ onMounted(async () => {
             </Card>
 
             <Card class="card span-2">
-                <template #title>Cumulative Expected vs Paid</template>
+                <template #title>{{ $t('summary.chart.cumTitle') }}</template>
                 <template #content>
                     <div class="chart-box">
                         <Chart type="line" :data="chPaidExpected" :options="chOptions" />
@@ -315,7 +339,7 @@ onMounted(async () => {
             </Card>
 
             <Card class="card span-2">
-                <template #title>Interest vs Principal (first 24)</template>
+                <template #title>{{ $t('summary.chart.ipTitle') }}</template>
                 <template #content>
                     <div class="chart-box">
                         <Chart type="bar" :data="chIP"
@@ -326,16 +350,16 @@ onMounted(async () => {
 
             <!-- Snapshot table -->
             <Card class="card span-2">
-                <template #title>Snapshot</template>
+                <template #title>{{ $t('summary.snapshot') }}</template>
                 <template #content>
                     <DataTable :value="[data.kpis]">
-                        <Column field="totalExpected" header="Expected"
+                        <Column field="totalExpected" :header="$t('summary.totalExpected')"
                             :body="({ data }: { data: any }) => fmtMoney(data.totalExpected)" />
-                        <Column field="totalPaid" header="Paid"
+                        <Column field="totalPaid" :header="$t('summary.totalPaid')"
                             :body="({ data }: { data: any }) => fmtMoney(data.totalPaid)" />
-                        <Column field="remainingPrincipal" header="Remaining"
+                        <Column field="remainingPrincipal" :header="$t('summary.remainingPrincipal')"
                             :body="({ data }: { data: any }) => fmtMoney(data.remainingPrincipal)" />
-                        <Column field="overdueCount" header="Overdue"
+                        <Column field="overdueCount" :header="$t('summary.overdueCount')"
                             :body="({ data }: { data: any }) => data.overdueCount" />
                     </DataTable>
                 </template>

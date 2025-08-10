@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth-client' })
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast'
@@ -31,7 +31,7 @@ type Installment = {
 
 const route = useRoute()
 const debtId = Number(route.params.id)
-const { $api } = useNuxtApp()
+const { $api, $t } = useNuxtApp()
 const toast = useToast()
 
 const loading = ref(false)
@@ -51,7 +51,9 @@ const payForm = ref<{ amount: number | null; paidAt: Date | null; isExtraAmortiz
 async function loadInstallments() {
     loading.value = true
     try {
-        const res = await $api.get('/installments', { params: { debtId, page: page.value, pageSize: pageSize.value, order: 'asc' } })
+        const res = await $api.get('/installments', {
+            params: { debtId, page: page.value, pageSize: pageSize.value, order: 'asc' }
+        })
         const data = res.data
         rows.value = (data?.items ?? []).map((i: Installment) => ({
             ...i,
@@ -67,7 +69,11 @@ async function loadInstallments() {
         }))
         totalItems.value = data?.totalItems ?? rows.value.length
     } catch (e: any) {
-        toast.add({ severity: 'error', summary: 'Installments', detail: e?.response?.data?.error || 'Failed to load installments' })
+        toast.add({
+            severity: 'error',
+            summary: $t('installments.title'),
+            detail: e?.response?.data?.error || $t('errors.failedLoadInstallments')
+        })
     } finally {
         loading.value = false
     }
@@ -87,7 +93,11 @@ function openPay(inst: Installment) {
 
 async function submitPayment() {
     if (!payForm.value.amount) {
-        toast.add({ severity: 'warn', summary: 'Validation', detail: 'Amount is required.' })
+        toast.add({
+            severity: 'warn',
+            summary: $t('validation.title'),
+            detail: $t('validation.amountRequired')
+        })
         return
     }
     try {
@@ -98,13 +108,29 @@ async function submitPayment() {
             paidAt: payForm.value.paidAt?.toISOString(),
             isExtraAmortization: payForm.value.isExtraAmortization
         })
-        toast.add({ severity: 'success', summary: 'Payment', detail: 'Payment registered' })
+        toast.add({
+            severity: 'success',
+            summary: $t('payments.single'),
+            detail: $t('payments.registered')
+        })
         showPay.value = false
         await loadInstallments()
     } catch (e: any) {
-        toast.add({ severity: 'error', summary: 'Payment', detail: e?.response?.data?.error || 'Failed to register payment' })
+        toast.add({
+            severity: 'error',
+            summary: $t('payments.single'),
+            detail: e?.response?.data?.error || $t('errors.failedRegisterPayment')
+        })
     }
 }
+
+const statusLabel = computed(() => ({
+    pending: $t('status.pending'),
+    paid: $t('status.paid'),
+    overdue: $t('status.overdue'),
+    partially_paid: $t('status.partially_paid')
+}))
+
 
 function back() { navigateTo('/debts') }
 
@@ -115,49 +141,51 @@ onMounted(loadInstallments)
     <div class="page">
         <Toast />
         <header class="page-header">
-            <h1>Installments — Debt #{{ debtId }}</h1>
+            <h1>{{ $t('installments.title') }} — {{ $t('debts.single') }} #{{ debtId }}</h1>
             <div class="actions">
-                <Button label="Back" severity="secondary" @click="back" />
+                <Button :label="$t('common.back')" severity="secondary" @click="back" />
             </div>
         </header>
 
         <DataTable :value="rows" :loading="loading" dataKey="id" class="w-100">
             <Column field="number" header="#" />
-            <Column field="dueDate" header="Due"
+            <Column field="dueDate" :header="$t('installments.due')"
                 :body="({ data }: { data: Installment }) => new Date(data.dueDate).toLocaleDateString()" />
-            <Column field="expectedTotal" header="Expected"
+            <Column field="expectedTotal" :header="$t('installments.expected')"
                 :body="({ data }: { data: Installment }) => (data.expectedTotal as number).toLocaleString()" />
-            <Column field="paidTotal" header="Paid"
+            <Column field="paidTotal" :header="$t('installments.paid')"
                 :body="({ data }: { data: Installment }) => (data.paidTotal as number).toLocaleString()" />
-            <Column field="status" header="Status" />
-            <Column field="remainingPrincipalAfter" header="Remain after"
+            <Column field="status" :header="$t('installments.status')"
+                :body="({ data }: { data: Installment }) => statusLabel[data.status]" />
+
+            <Column field="remainingPrincipalAfter" :header="$t('installments.remainingAfter')"
                 :body="({ data }: { data: Installment }) => (data.remainingPrincipalAfter as number).toLocaleString()" />
-            <Column header="Actions">
+            <Column :header="$t('common.actions')">
                 <template #body="{ data }">
-                    <Button label="Pay" @click="openPay(data)" />
+                    <Button :label="$t('payments.pay')" @click="openPay(data)" />
                 </template>
             </Column>
         </DataTable>
 
-        <Dialog v-model:visible="showPay" header="Register Payment" modal :style="{ width: '420px' }">
+        <Dialog v-model:visible="showPay" :header="$t('payments.registerPayment')" modal :style="{ width: '420px' }">
             <div class="form-row">
-                <label>Amount</label>
+                <label>{{ $t('payments.amount') }}</label>
                 <InputNumber v-model="payForm.amount" class="w-100" mode="currency" currency="USD" locale="en-US"
                     :min="0" />
             </div>
             <div class="form-row">
-                <label>Paid at</label>
+                <label>{{ $t('payments.paidAt') }}</label>
                 <Calendar v-model="payForm.paidAt" class="w-100" showTime hourFormat="24" dateFormat="yy-mm-dd" />
             </div>
             <div class="form-row">
                 <label>
                     <input type="checkbox" v-model="payForm.isExtraAmortization" />
-                    Extra amortization (reduce principal)
+                    {{ $t('payments.extraAmort') }}
                 </label>
             </div>
             <template #footer>
-                <Button label="Cancel" severity="secondary" @click="showPay = false" />
-                <Button label="Register" @click="submitPayment" />
+                <Button :label="$t('common.cancel')" severity="secondary" @click="showPay = false" />
+                <Button :label="$t('payments.register')" @click="submitPayment" />
             </template>
         </Dialog>
     </div>

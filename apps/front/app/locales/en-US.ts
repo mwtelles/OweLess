@@ -8,6 +8,36 @@ export default {
         close: 'Close',
         loading: 'Loading...',
         noData: 'No data',
+        actions: 'Actions',
+        edit: 'Edit',
+        title: 'Title',
+        create: 'Create',
+        saveCreate: 'Create',
+        monthsShort: 'mo',
+    },
+    errors: {
+        failedLoadDebts: 'Failed to load debts',
+        failedCreateDebt: 'Failed to create debt',
+        failedLoadInstallments: 'Failed to load installments',
+        failedRegisterPayment: 'Failed to register payment',
+        failedLoadSummary: 'Failed to load data'
+    },
+    validation: {
+        title: 'Validation',
+        requiredFields: 'Fill required fields.',
+        amountRequired: 'Amount is required.',
+    },
+    nav: {
+        dashboard: 'Dashboard',
+        debts: 'Debts',
+        payments: 'Payments',
+        profile: 'Profile',
+        logout: 'Logout',
+        settings: 'Settings',
+    },
+    settings: {
+        language: 'Language',
+        currency: 'Currency',
     },
     profile: {
         myAccount: 'My Account',
@@ -40,7 +70,26 @@ export default {
         monthlyFees: 'Monthly fees',
         createDebt: 'Create Debt',
         installments: 'Installments',
-        summary: 'Summary'
+        summary: 'Summary',
+        single: 'Debt',
+        created: 'Debt created',
+        rateTypeFixedYear: 'Fixed (year)',
+        rateTypeFixedMonth: 'Fixed (month)',
+        rateTypeIndexed: 'Indexed',
+        examples: {
+            nominalYear: 'e.g., 0.145 = 14.5%/year',
+            nominalMonth: 'e.g., 0.012 = 1.2%/month',
+            spread: 'e.g., 0.03 = +3% over index'
+        },
+        termLabel: 'Term: {months} {unit}',
+        nominalRate: 'Nominal rate',
+        types: {
+            loan: 'Loan',
+            financing: 'Financing',
+            student: 'Student',
+            credit_card: 'Credit card',
+            other: 'Other'
+        }
     },
     summary: {
         totalExpected: 'Total Expected',
@@ -49,9 +98,26 @@ export default {
         overdueCount: 'Overdue Count',
         nextDue: 'Next Due',
         snapshot: 'Snapshot',
-        goPay: 'Go pay'
+        goPay: 'Go pay',
+        title: 'Summary',
+        titleDebt: 'Debt Summary',
+        ofExpected: '{pct} of expected',
+        chart: {
+            remainingPrincipal: 'Remaining Principal',
+            expectedCum: 'Expected (cum.)',
+            paidCum: 'Paid (cum.)',
+            interest: 'Interest',
+            principal: 'Principal',
+            remainingTitle: 'Remaining Principal over time',
+            cumTitle: 'Cumulative Expected vs Paid',
+            ipTitle: 'Interest vs Principal (first 24)'
+        }
     },
     payments: {
+        single: 'Payment',
+        pay: 'Pay',
+        register: 'Register',
+        registered: 'Payment registered',
         registerPayment: 'Register Payment',
         amount: 'Amount',
         paidAt: 'Paid at',
@@ -63,5 +129,19 @@ export default {
         remainingByDebt: 'Remaining by Debt (Top 10)',
         expectedVsPaid: 'Expected vs Paid by Debt (Top 10)',
         upcomingDues: 'Upcoming dues'
-    }
+    },
+    status: {
+        pending: 'Pending',
+        paid: 'Paid',
+        overdue: 'Overdue',
+        partially_paid: 'Partially paid'
+    },
+    installments: {
+        title: 'Installments',
+        due: 'Due',
+        expected: 'Expected',
+        paid: 'Paid',
+        status: 'Status',
+        remainingAfter: 'Remain after'
+    },
 }

@@ -8,9 +8,39 @@ export default {
         close: 'Fechar',
         loading: 'Carregando...',
         noData: 'Sem dados',
+        actions: 'Ações',
+        edit: 'Editar',
+        title: 'Título',
+        create: 'Criar',
+        saveCreate: 'Criar',
+        monthsShort: 'mês',
+    },
+    errors: {
+        failedLoadDebts: 'Falha ao carregar dívidas',
+        failedCreateDebt: 'Falha ao criar dívida',
+        failedLoadInstallments: 'Falha ao carregar parcelas',
+        failedRegisterPayment: 'Falha ao registrar pagamento',
+        failedLoadSummary: 'Falha ao carregar dados',
+    },
+    validation: {
+        title: 'Validação',
+        requiredFields: 'Preencha os campos obrigatórios.',
+        amountRequired: 'Valor é obrigatório.',
     },
     profile: {
         myAccount: 'Minha Conta',
+    },
+    nav: {
+        dashboard: 'Painel',
+        debts: 'Dívidas',
+        payments: 'Pagamentos',
+        profile: 'Perfil',
+        logout: 'Sair',
+        settings: 'Configurações',
+    },
+    settings: {
+        language: 'Idioma',
+        currency: 'Moeda',
     },
     auth: {
         noAccount: 'Não tem uma conta?',
@@ -40,7 +70,26 @@ export default {
         monthlyFees: 'Taxas mensais',
         createDebt: 'Criar Dívida',
         installments: 'Parcelas',
-        summary: 'Resumo'
+        summary: 'Resumo',
+        single: 'Dívida',
+        created: 'Dívida criada',
+        rateTypeFixedYear: 'Fixa (ano)',
+        rateTypeFixedMonth: 'Fixa (mês)',
+        rateTypeIndexed: 'Indexada',
+        examples: {
+            nominalYear: 'Ex.: 0,145 = 14,5%/ano',
+            nominalMonth: 'Ex.: 0,012 = 1,2%/mês',
+            spread: 'Ex.: 0,03 = +3% sobre o índice'
+        },
+        termLabel: 'Prazo: {months} {unit}',
+        nominalRate: 'Taxa nominal',
+        types: {
+            loan: 'Empréstimo',
+            financing: 'Financiamento',
+            student: 'Estudantil',
+            credit_card: 'Cartão de crédito',
+            other: 'Outro'
+        }
     },
     summary: {
         totalExpected: 'Total Previsto',
@@ -49,13 +98,30 @@ export default {
         overdueCount: 'Qtd. em Atraso',
         nextDue: 'Próximo Vencimento',
         snapshot: 'Visão Geral',
-        goPay: 'Pagar'
+        goPay: 'Pagar',
+        title: 'Resumo',
+        titleDebt: 'Resumo da Dívida',
+        ofExpected: '{pct} do previsto',
+        chart: {
+            remainingPrincipal: 'Saldo devedor',
+            expectedCum: 'Previsto (acum.)',
+            paidCum: 'Pago (acum.)',
+            interest: 'Juros',
+            principal: 'Principal',
+            remainingTitle: 'Saldo devedor ao longo do tempo',
+            cumTitle: 'Previsto x Pago (acumulado)',
+            ipTitle: 'Juros x Principal (primeiras 24)'
+        }
     },
     payments: {
+        single: 'Pagamento',
+        pay: 'Pagar',
+        register: 'Registrar',
+        registered: 'Pagamento registrado',
         registerPayment: 'Registrar Pagamento',
         amount: 'Valor',
         paidAt: 'Pago em',
-        extraAmort: 'Amortização extra (reduz saldo)'
+        extraAmort: 'Amortização extra (reduz principal)'
     },
     dashboard: {
         title: 'Painel',
@@ -63,5 +129,19 @@ export default {
         remainingByDebt: 'Saldo por Dívida (Top 10)',
         expectedVsPaid: 'Previsto vs Pago por Dívida (Top 10)',
         upcomingDues: 'Próximos vencimentos'
-    }
+    },
+    status: {
+        pending: 'Pendente',
+        paid: 'Pago',
+        overdue: 'Em atraso',
+        partially_paid: 'Parcialmente pago'
+    },
+    installments: {
+        title: 'Parcelas',
+        due: 'Vencimento',
+        expected: 'Previsto',
+        paid: 'Pago',
+        status: 'Status',
+        remainingAfter: 'Saldo após'
+    },
 }
