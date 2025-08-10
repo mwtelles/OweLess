@@ -4,7 +4,7 @@
             <NuxtLink to="/">OweLess</NuxtLink>
             <nav>
                 <NuxtLink to="/">Dashboard</NuxtLink>
-                <NuxtLink to="/">Debts</NuxtLink>
+                <NuxtLink to="/debts">Debts</NuxtLink>
             </nav>
             <div>
                 <button v-if="!auth.isAuthenticated" @click="goLogin">Login</button>
