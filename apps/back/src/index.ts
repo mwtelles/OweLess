@@ -3,11 +3,12 @@ import { cors } from '@elysiajs/cors'
 import { db } from './db/client'
 import { users } from './db/schema'
 import 'dotenv/config'
-
 import { authRoutes } from './routes/auth'
 import { meRoutes } from './routes/me'
 import { debtRoutes } from './routes/debts'
 import { installmentRoutes } from './routes/installments'
+import { paymentRoutes } from './routes/payments'
+import { debtSummaryRoutes } from './routes/debts-summary'
 
 const ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:3000'
 
@@ -19,10 +20,14 @@ const app = new Elysia()
         allowedHeaders: ['Content-Type', 'Authorization']
     }))
     .get('/health', () => ({ ok: true, service: 'OweLess-API' }))
+
     .use(authRoutes)
     .use(meRoutes)
     .use(debtRoutes)
     .use(installmentRoutes)
+    .use(paymentRoutes)
+    .use(debtSummaryRoutes)
+
     .get('/version', () => ({ version: '0.0.1' }))
     .get('/ping-db', async () => {
         const rows = await db.select({ id: users.id }).from(users).limit(1)
