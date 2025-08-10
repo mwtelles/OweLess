@@ -18,7 +18,8 @@ ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/drizzle ./drizzle
+COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
 
 EXPOSE 1313
 
-CMD ["sh", "-c", "bunx drizzle-kit push && bun run dist/index.js"]
+CMD ["bun", "run", "start"]
