@@ -11,6 +11,6 @@
     },
     "include": [
         "src",
-        "drizzle.config.ts"
+        "drizzle.config.ts",
     ]
 }
