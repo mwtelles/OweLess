@@ -7,7 +7,20 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     ['@primevue/nuxt-module', {
-      options: { theme: { preset: Theme } }
+      options: { theme: { preset: Theme } },
+      components: [
+        'Button',
+        'DataTable',
+        'Column',
+        'InputText',
+        'Toast',
+        'Dialog',
+        'Calendar',
+        'Dropdown',
+        'InputNumber',
+        'ConfirmDialog',
+        'ProgressSpinner',
+      ],
     }],
   ],
   app: {

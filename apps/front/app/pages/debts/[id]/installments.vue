@@ -15,10 +15,18 @@ import Calendar from 'primevue/calendar'
 type Installment = {
     id: number
     debtId: number
+    number: number
     dueDate: string
-    amount: string | number
-    paidAt?: string | null
-    createdAt?: string
+    expectedInterest: string | number
+    expectedPrincipal: string | number
+    expectedFees: string | number
+    expectedTotal: string | number
+    paidInterest: string | number
+    paidPrincipal: string | number
+    paidFees: string | number
+    paidTotal: string | number
+    remainingPrincipalAfter: string | number
+    status: 'pending' | 'paid' | 'overdue' | 'partially_paid'
 }
 
 const route = useRoute()
@@ -28,21 +36,36 @@ const toast = useToast()
 
 const loading = ref(false)
 const rows = ref<Installment[]>([])
+const page = ref(1)
+const pageSize = ref(50)
+const totalItems = ref(0)
 
-const showCreate = ref(false)
-const form = ref<{ dueDate: Date | null; amount: number | null }>({
-    dueDate: new Date(),
-    amount: null
+const showPay = ref(false)
+const payingInst = ref<Installment | null>(null)
+const payForm = ref<{ amount: number | null; paidAt: Date | null; isExtraAmortization: boolean }>({
+    amount: null,
+    paidAt: new Date(),
+    isExtraAmortization: false
 })
 
 async function loadInstallments() {
     loading.value = true
     try {
-        const res = await $api.get('/installments', { params: { debtId } })
-        rows.value = (res.data?.installments ?? []).map((i: Installment) => ({
+        const res = await $api.get('/installments', { params: { debtId, page: page.value, pageSize: pageSize.value, order: 'asc' } })
+        const data = res.data
+        rows.value = (data?.items ?? []).map((i: Installment) => ({
             ...i,
-            amount: typeof i.amount === 'string' ? parseFloat(i.amount) : i.amount
+            expectedInterest: num(i.expectedInterest),
+            expectedPrincipal: num(i.expectedPrincipal),
+            expectedFees: num(i.expectedFees),
+            expectedTotal: num(i.expectedTotal),
+            paidInterest: num(i.paidInterest),
+            paidPrincipal: num(i.paidPrincipal),
+            paidFees: num(i.paidFees),
+            paidTotal: num(i.paidTotal),
+            remainingPrincipalAfter: num(i.remainingPrincipalAfter)
         }))
+        totalItems.value = data?.totalItems ?? rows.value.length
     } catch (e: any) {
         toast.add({ severity: 'error', summary: 'Installments', detail: e?.response?.data?.error || 'Failed to load installments' })
     } finally {
@@ -50,29 +73,40 @@ async function loadInstallments() {
     }
 }
 
-async function createInstallment() {
-    if (!form.value.dueDate || !form.value.amount) {
-        toast.add({ severity: 'warn', summary: 'Validation', detail: 'Fill all fields.' })
+function num(v: any) {
+    if (typeof v === 'number') return v
+    if (typeof v === 'string') return parseFloat(v)
+    return 0
+}
+
+function openPay(inst: Installment) {
+    payingInst.value = inst
+    payForm.value = { amount: null, paidAt: new Date(), isExtraAmortization: false }
+    showPay.value = true
+}
+
+async function submitPayment() {
+    if (!payForm.value.amount) {
+        toast.add({ severity: 'warn', summary: 'Validation', detail: 'Amount is required.' })
         return
     }
     try {
-        await $api.post('/installments', {
+        await $api.post('/payments', {
             debtId,
-            dueDate: form.value.dueDate.toISOString(),
-            amount: form.value.amount
+            installmentId: payingInst.value?.id,
+            amount: payForm.value.amount,
+            paidAt: payForm.value.paidAt?.toISOString(),
+            isExtraAmortization: payForm.value.isExtraAmortization
         })
-        showCreate.value = false
-        toast.add({ severity: 'success', summary: 'Installment', detail: 'Installment created' })
+        toast.add({ severity: 'success', summary: 'Payment', detail: 'Payment registered' })
+        showPay.value = false
         await loadInstallments()
-        form.value = { dueDate: new Date(), amount: null }
     } catch (e: any) {
-        toast.add({ severity: 'error', summary: 'Installment', detail: e?.response?.data?.error || 'Failed to create installment' })
+        toast.add({ severity: 'error', summary: 'Payment', detail: e?.response?.data?.error || 'Failed to register payment' })
     }
 }
 
-function back() {
-    navigateTo('/debts')
-}
+function back() { navigateTo('/debts') }
 
 onMounted(loadInstallments)
 </script>
@@ -83,34 +117,47 @@ onMounted(loadInstallments)
         <header class="page-header">
             <h1>Installments — Debt #{{ debtId }}</h1>
             <div class="actions">
-                <Button label="New Installment" @click="showCreate = true" />
                 <Button label="Back" severity="secondary" @click="back" />
             </div>
         </header>
 
         <DataTable :value="rows" :loading="loading" dataKey="id" class="w-100">
-            <Column field="id" header="#" />
-            <Column header="Due"
+            <Column field="number" header="#" />
+            <Column field="dueDate" header="Due"
                 :body="({ data }: { data: Installment }) => new Date(data.dueDate).toLocaleDateString()" />
-            <Column header="Amount"
-                :body="({ data }: { data: Installment }) => (typeof data.amount === 'number' ? data.amount.toLocaleString() : data.amount)" />
-            <Column header="Paid at"
-                :body="({ data }: { data: Installment }) => data.paidAt ? new Date(data.paidAt).toLocaleString() : '-'" />
+            <Column field="expectedTotal" header="Expected"
+                :body="({ data }: { data: Installment }) => (data.expectedTotal as number).toLocaleString()" />
+            <Column field="paidTotal" header="Paid"
+                :body="({ data }: { data: Installment }) => (data.paidTotal as number).toLocaleString()" />
+            <Column field="status" header="Status" />
+            <Column field="remainingPrincipalAfter" header="Remain after"
+                :body="({ data }: { data: Installment }) => (data.remainingPrincipalAfter as number).toLocaleString()" />
+            <Column header="Actions">
+                <template #body="{ data }">
+                    <Button label="Pay" @click="openPay(data)" />
+                </template>
+            </Column>
         </DataTable>
 
-        <Dialog v-model:visible="showCreate" header="Create Installment" modal :style="{ width: '420px' }">
-            <div class="form-row">
-                <label>Due date</label>
-                <Calendar v-model="form.dueDate" class="w-100" dateFormat="yy-mm-dd" />
-            </div>
+        <Dialog v-model:visible="showPay" header="Register Payment" modal :style="{ width: '420px' }">
             <div class="form-row">
                 <label>Amount</label>
-                <InputNumber v-model="form.amount" class="w-100" mode="currency" currency="USD" locale="en-US"
+                <InputNumber v-model="payForm.amount" class="w-100" mode="currency" currency="USD" locale="en-US"
                     :min="0" />
             </div>
+            <div class="form-row">
+                <label>Paid at</label>
+                <Calendar v-model="payForm.paidAt" class="w-100" showTime hourFormat="24" dateFormat="yy-mm-dd" />
+            </div>
+            <div class="form-row">
+                <label>
+                    <input type="checkbox" v-model="payForm.isExtraAmortization" />
+                    Extra amortization (reduce principal)
+                </label>
+            </div>
             <template #footer>
-                <Button label="Cancel" severity="secondary" @click="showCreate = false" />
-                <Button label="Create" @click="createInstallment" />
+                <Button label="Cancel" severity="secondary" @click="showPay = false" />
+                <Button label="Register" @click="submitPayment" />
             </template>
         </Dialog>
     </div>
