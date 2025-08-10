@@ -36,7 +36,7 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
         const userId = inserted[0].id;
 
         const token = await signAccessToken({ userId }, '1h');
-        return { token, user: { id: userId, email } };
+        return { accessToken: token, user: { id: userId, email } };
     }, {
         body: t.Object({ email: t.String(), password: t.String() })
     })
@@ -61,7 +61,7 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
         }
 
         const token = await signAccessToken({ userId: found[0].id }, '1h');
-        return { token, user: { id: found[0].id, email } };
+        return { accessToken: token, user: { id: found[0].id, email } };
     }, {
         body: t.Object({ email: t.String(), password: t.String() })
     });

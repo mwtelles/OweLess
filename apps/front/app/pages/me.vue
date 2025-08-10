@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth';
+
 const { $api } = useNuxtApp();
 const auth = useAuthStore();
 const me = ref<any>(null);
@@ -19,6 +21,6 @@ onMounted(async () => {
         <h1>My Account</h1>
         <pre v-if="me">{{ me }}</pre>
         <p v-else-if="errorMsg" style="color:#c00">{{ errorMsg }}</p>
-        <button @click="useAuthStore().clear()">Logout</button>
+        <button @click="auth.logout()">Logout</button>
     </main>
 </template>
