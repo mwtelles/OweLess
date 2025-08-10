@@ -3,12 +3,12 @@
         <header class="header">
             <NuxtLink to="/">OweLess</NuxtLink>
             <nav>
-                <NuxtLink to="/">Dashboard</NuxtLink>
-                <NuxtLink to="/debts">Debts</NuxtLink>
+                <NuxtLink to="/" v-if="auth.isAuthenticated">Dashboard</NuxtLink>
+                <NuxtLink to="/debts" v-if="auth.isAuthenticated">Debts</NuxtLink>
             </nav>
             <div>
                 <button v-if="!auth.isAuthenticated" @click="goLogin">Login</button>
-                <button v-else @click="logout">Logout</button>
+                <button v-if="auth.isAuthenticated" @click="logout">Logout</button>
             </div>
         </header>
         <main>
