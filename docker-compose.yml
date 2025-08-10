@@ -1,8 +1,6 @@
-version: '3.9'
 services:
   db:
     image: postgres:16-alpine
-    container_name: oweless_db
     environment:
       POSTGRES_USER: oweless
       POSTGRES_PASSWORD: oweless
@@ -11,5 +9,32 @@ services:
       - "5432:5432"
     volumes:
       - dbdata:/var/lib/postgresql/data
+
+  back:
+    build:
+      context: ./apps/back
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 1313
+      DATABASE_URL: postgres://oweless:oweless@db:5432/oweless
+    ports:
+      - "1313:1313"
+    depends_on:
+      - db
+
+  front:
+    build:
+      context: ./apps/front
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+      NITRO_PRESET: bun
+      NUXT_PUBLIC_API_BASE: http://localhost:1313
+    ports:
+      - "3000:3000"
+    depends_on:
+      - back
+
 volumes:
   dbdata:

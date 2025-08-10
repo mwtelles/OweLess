@@ -3,11 +3,12 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
+    "build": "nuxt build --no-oxc",
+    "dev": "nuxt dev --no-oxc",
+    "generate": "nuxt generate --no-oxc",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare --no-oxc || echo 'Postinstall failed, continuing...'",
+    "prepare:safe": "nuxt prepare --no-oxc || nuxt prepare"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.11.2",

@@ -1,0 +1,8 @@
+node_modules
+dist
+.drizzle
+.pnpm
+.pnpm-store
+.git
+.vscode
+.DS_Store
