@@ -8,8 +8,18 @@ RUN bun install --frozen-lockfile
 FROM deps AS build
 WORKDIR /app
 COPY . .
-RUN bun run build  # gera /dist
-RUN bunx drizzle-kit generate --config=drizzle.config.ts  # gera migrations
+
+ENV NODE_ENV=development
+
+RUN set -ex \
+    && bun --version \
+    && bun x drizzle-kit --version \
+    && echo "NODE_ENV=$NODE_ENV" \
+    && echo "Has DATABASE_URL? " && [ -z "$DATABASE_URL" ] && echo "no" || echo "yes"
+
+RUN bun x drizzle-kit generate --config=drizzle.config.ts
+
+RUN bun run build
 
 # ---------- runtime ----------
 FROM oven/bun:1.1.26-alpine AS runtime
