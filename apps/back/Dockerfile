@@ -17,7 +17,10 @@ ENV NODE_ENV=production
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/package.json ./package.json
+# e, se aplicável, as migrations:
+COPY --from=build /app/drizzle ./drizzle
 
 EXPOSE 1313
-
 CMD ["bun", "run", "start"]
+
