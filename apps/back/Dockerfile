@@ -8,17 +8,6 @@ RUN bun install --frozen-lockfile
 FROM deps AS build
 WORKDIR /app
 COPY . .
-
-ENV NODE_ENV=development
-
-RUN set -ex \
-    && bun --version \
-    && bun x drizzle-kit --version \
-    && echo "NODE_ENV=$NODE_ENV" \
-    && echo "Has DATABASE_URL? " && [ -z "$DATABASE_URL" ] && echo "no" || echo "yes"
-
-RUN bun x drizzle-kit generate --config=drizzle.config.ts
-
 RUN bun run build
 
 # ---------- runtime ----------
@@ -28,7 +17,7 @@ ENV NODE_ENV=production
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/drizzle ./drizzle
 
 EXPOSE 1313
-CMD ["bun", "run", "dist/index.js"]
+
+CMD ["bun", "run", "start"]
