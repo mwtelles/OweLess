@@ -14,13 +14,17 @@ RUN bun run build
 FROM oven/bun:1.1.26-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+ENV PORT=1313
 
+# TLS certs para DB serverless (Neon/Supabase)
+RUN apk add --no-cache ca-certificates
+
+# Copiamos só o necessário para rodar
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/package.json ./package.json
-# e, se aplicável, as migrations:
 COPY --from=build /app/drizzle ./drizzle
 
 EXPOSE 1313
-CMD ["bun", "run", "start"]
-
+# chama o bundle diretamente
+CMD ["bun", "dist/index.js"]

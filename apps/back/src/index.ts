@@ -1,3 +1,4 @@
+// src/index.ts
 import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { db } from './db/client'
@@ -11,11 +12,12 @@ import { installmentRoutes } from './routes/installments'
 import { paymentRoutes } from './routes/payments'
 import { debtSummaryRoutes } from './routes/debts-summary'
 import { dashboardRoutes } from './routes/dashboard'
-import { execSync } from 'node:child_process'
+import { migrate } from 'drizzle-orm/postgres-js/migrator'
 
 const ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:3000'
 const port = Number(process.env.APP_PORT ?? 1313)
 const RUN_MIGRATIONS = (process.env.RUN_MIGRATIONS ?? 'true').toLowerCase() === 'true'
+const MIGRATIONS_DIR = process.env.MIGRATIONS_DIR ?? 'drizzle' // keep in sync with Dockerfile
 
 async function waitForDb(maxAttempts = 10) {
     let attempt = 0
@@ -23,9 +25,9 @@ async function waitForDb(maxAttempts = 10) {
         try {
             await db.execute(sql`SELECT 1`)
             return
-        } catch (err) {
+        } catch {
             attempt++
-            const ms = Math.min(1000 * Math.pow(2, attempt), 10000)
+            const ms = Math.min(1000 * 2 ** attempt, 10_000)
             console.warn(`DB not ready (attempt ${attempt}) -> retry in ${ms}ms`)
             await new Promise(r => setTimeout(r, ms))
         }
@@ -33,23 +35,24 @@ async function waitForDb(maxAttempts = 10) {
     throw new Error('DB not reachable after retries')
 }
 
-function pushMigrations() {
+async function applyMigrations() {
+    if (!RUN_MIGRATIONS) {
+        console.log('Skipping migrations (RUN_MIGRATIONS=false)')
+        return
+    }
     try {
-        execSync('bunx --bun drizzle-kit push', {
-            stdio: 'inherit',
-            timeout: 30_000
-        })
-        console.log('Migrations applied successfully ✅')
+        await migrate(db, { migrationsFolder: MIGRATIONS_DIR })
+        console.log('Drizzle migrations applied ✅')
     } catch (err) {
-        console.error('⚠️ drizzle-kit push failed. Server will still start.', err)
+        console.error('❌ Failed to apply migrations via drizzle migrator', err)
+        // Decide: fail fast or continue. In prod, normalmente é melhor falhar:
+        throw err
     }
 }
 
 async function bootstrap() {
     await waitForDb()
-
-    if (RUN_MIGRATIONS) pushMigrations()
-    else console.log('Skipping migrations (RUN_MIGRATIONS=false)')
+    await applyMigrations()
 
     const app = new Elysia()
         .use(cors({
