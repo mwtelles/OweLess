@@ -14,6 +14,7 @@ export default {
         create: 'Criar',
         saveCreate: 'Criar',
         monthsShort: 'mês',
+        delete: 'Excluir',
     },
     errors: {
         failedLoadDebts: 'Falha ao carregar dívidas',
@@ -21,6 +22,7 @@ export default {
         failedLoadInstallments: 'Falha ao carregar parcelas',
         failedRegisterPayment: 'Falha ao registrar pagamento',
         failedLoadSummary: 'Falha ao carregar dados',
+        failedDeleteDebt: 'Não foi possível excluir a dívida.'
     },
     validation: {
         title: 'Validação',
@@ -89,7 +91,10 @@ export default {
             student: 'Estudantil',
             credit_card: 'Cartão de crédito',
             other: 'Outro'
-        }
+        },
+        deleted: "Dívida excluída com sucesso.",
+        deleteConfirmTitle: "Excluir dívida",
+        deleteConfirmMessage: "Tem certeza que deseja excluir esta dívida? As parcelas e eventos vinculados serão removidos.",
     },
     summary: {
         totalExpected: 'Total Previsto',

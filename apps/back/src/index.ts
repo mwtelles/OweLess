@@ -44,7 +44,6 @@ async function applyMigrations() {
         console.log('Drizzle migrations applied ✅')
     } catch (err) {
         console.error('❌ Failed to apply migrations via drizzle migrator', err)
-        // Decide: fail fast or continue. In prod, normalmente é melhor falhar:
         throw err
     }
 }

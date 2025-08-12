@@ -1,4 +1,3 @@
-// apps/back/src/routes/debts.ts (trechos)
 import { Elysia, t } from 'elysia'
 import { z } from 'zod'
 import Decimal from 'decimal.js-light'
@@ -6,7 +5,7 @@ import { db } from '../db/client'
 import { debts, installments } from '../db/schema'
 import { authMiddleware } from '../middlewares/auth'
 import { buildSchedule } from '../services/schedule'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 
 const CreateDebtSchema = z.object({
     title: z.string().min(1),
@@ -49,7 +48,6 @@ export const debtRoutes = new Elysia({ prefix: '/debts' })
             monthlyFees: dto.monthlyFees.toString()
         }).returning()
 
-        // construir cronograma
         const schedule = buildSchedule({
             principal: new Decimal(dto.principal),
             amortizationSystem: dto.amortizationSystem,
@@ -97,23 +95,36 @@ export const debtRoutes = new Elysia({ prefix: '/debts' })
         })
     })
 
-    // listar c/ KPIs leves
     .get('/', async ({ userId }) => {
         const rows = await db.select().from(debts).where(eq(debts.userId, userId))
         // (opcional) somar pagos/abertos com queries adicionais
         return { debts: rows }
     })
 
-    // resumo por dívida
-    .get('/:id/summary', async ({ params, userId, set }) => {
-        const id = Number(params.id)
-        if (!id) { set.status = 400; return { error: 'Invalid id' } }
+    .delete('/:id', async ({ params, userId, set }) => {
+        const debtId = Number(params.id);
+        if (!Number.isFinite(debtId)) {
+            set.status = 400;
+            return { error: 'Invalid debt id' };
+        }
 
-        // left join installments + agregados de paymentEvents seria o ideal
-        // aqui um esqueleto simplificado:
-        // - saldo remanescente = última remainingPrincipalAfter
-        // - total pago = soma de paidTotal (ou events)
-        // - próximas N parcelas...
-        // (implementar conforme necessidade)
-        return { summary: { /* ... */ } }
-    })
+        const found = await db.select({ id: debts.id })
+            .from(debts)
+            .where(and(eq(debts.id, debtId), eq(debts.userId, userId)))
+            .then(rows => rows[0]);
+
+        if (!found) {
+            set.status = 404;
+            return {
+                error: 'Debt not found for this user',
+                code: 'DEBT_NOT_FOUND'
+            };
+        }
+
+        await db.delete(debts).where(and(eq(debts.id, debtId), eq(debts.userId, userId)));
+
+        set.status = 204;
+        return null;
+    }, {
+        params: t.Object({ id: t.Numeric() })
+    });

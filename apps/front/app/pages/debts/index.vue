@@ -69,7 +69,6 @@ const form = ref<{
     monthlyFees: 0
 })
 
-/** Opções com labels traduzidas e reativas ao idioma */
 const rateTypeOptions = computed(() => ([
     { label: $t('debts.rateTypeFixedYear'), value: 'fixed_nominal_year' },
     { label: $t('debts.rateTypeFixedMonth'), value: 'fixed_nominal_month' },
@@ -84,6 +83,34 @@ const amortOptions = computed(() => ([
 const showYearRate = computed(() => form.value.rateType === 'fixed_nominal_year')
 const showMonthRate = computed(() => form.value.rateType === 'fixed_nominal_month')
 const showSpread = computed(() => form.value.rateType === 'indexed_variable')
+const showDelete = ref(false)
+const deleting = ref(false)
+const selectedDebt = ref<Debt | null>(null)
+
+function askDelete(row: Debt) {
+    selectedDebt.value = row
+    showDelete.value = true
+}
+
+async function confirmDelete() {
+    if (!selectedDebt.value) return
+    deleting.value = true
+    try {
+        await $api.delete(`/debts/${selectedDebt.value.id}`)
+        toast.add({ severity: 'success', summary: $t('debts.single'), detail: $t('debts.deleted') })
+        showDelete.value = false
+        selectedDebt.value = null
+        await loadDebts()
+    } catch (e: any) {
+        toast.add({
+            severity: 'error',
+            summary: $t('debts.single'),
+            detail: e?.response?.data?.error || $t('errors.failedDeleteDebt')
+        })
+    } finally {
+        deleting.value = false
+    }
+}
 
 async function loadDebts() {
     loading.value = true
@@ -186,9 +213,11 @@ onMounted(loadDebts)
             <Column :header="$t('common.actions')">
                 <template #body="{ data }">
                     <Button class="mr" :label="$t('debts.summary')" @click="goSummary(data)" />
-                    <Button :label="$t('debts.installments')" @click="goInstallments(data)" />
+                    <Button class="mr" :label="$t('debts.installments')" @click="goInstallments(data)" />
+                    <Button class="mr" :label="$t('common.delete')" severity="danger" @click="askDelete(data)" />
                 </template>
             </Column>
+
         </DataTable>
 
         <Dialog v-model:visible="showCreate" :header="$t('debts.createDebt')" modal :style="{ width: '520px' }">
@@ -267,6 +296,22 @@ onMounted(loadDebts)
                 <Button :label="$t('common.saveCreate')" @click="createDebt" />
             </template>
         </Dialog>
+
+        <Dialog v-model:visible="showDelete" :header="$t('debts.deleteConfirmTitle')" modal :style="{ width: '460px' }">
+            <p style="margin-bottom: .5rem;">
+                {{ $t('debts.deleteConfirmMessage') }}
+            </p>
+            <p v-if="selectedDebt" style="font-weight: 600;">
+                “{{ selectedDebt.title }}”
+            </p>
+
+            <template #footer>
+                <Button :label="$t('common.cancel')" severity="secondary" :disabled="deleting"
+                    @click="showDelete = false" />
+                <Button :label="$t('common.delete')" severity="danger" :loading="deleting" @click="confirmDelete" />
+            </template>
+        </Dialog>
+
     </div>
 </template>
 

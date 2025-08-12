@@ -14,13 +14,15 @@ export default {
         create: 'Create',
         saveCreate: 'Create',
         monthsShort: 'mo',
+        delete: 'Delete',
     },
     errors: {
         failedLoadDebts: 'Failed to load debts',
         failedCreateDebt: 'Failed to create debt',
         failedLoadInstallments: 'Failed to load installments',
         failedRegisterPayment: 'Failed to register payment',
-        failedLoadSummary: 'Failed to load data'
+        failedLoadSummary: 'Failed to load data',
+        failedDeleteDebt: 'Could not delete the debt.'
     },
     validation: {
         title: 'Validation',
@@ -89,7 +91,10 @@ export default {
             student: 'Student',
             credit_card: 'Credit card',
             other: 'Other'
-        }
+        },
+        deleted: "Debt successfully deleted.",
+        deleteConfirmTitle: "Delete debt",
+        deleteConfirmMessage: "Are you sure you want to delete this debt? Its installments and payment events will be removed.",
     },
     summary: {
         totalExpected: 'Total Expected',
