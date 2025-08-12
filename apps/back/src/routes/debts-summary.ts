@@ -2,7 +2,9 @@ import { Elysia } from 'elysia'
 import { db } from '../db/client'
 import { debts, installments } from '../db/schema'
 import { authMiddleware } from '../middlewares/auth'
-import { and, eq, asc, desc, sql } from 'drizzle-orm'
+import { and, eq, asc, desc, inArray, sql } from 'drizzle-orm'
+
+const IS_PROD = (process.env.NODE_ENV ?? 'development') === 'production'
 
 export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
     .use(authMiddleware)
@@ -10,11 +12,8 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
         const id = Number(params.id)
         if (!id) { set.status = 400; return { error: 'Invalid id' } }
 
-        const [d] = await db
-            .select()
-            .from(debts)
-            .where(and(eq(debts.id, id), eq(debts.userId, userId)))
-            .limit(1)
+        const [d] = await db.select().from(debts)
+            .where(and(eq(debts.id, id), eq(debts.userId, userId))).limit(1)
 
         if (!d) { set.status = 404; return { error: 'Debt not found' } }
 
@@ -41,7 +40,7 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
             .from(installments)
             .where(and(
                 eq(installments.debtId, id),
-                sql`(${installments.status} = 'pending' OR ${installments.status} = 'partially_paid')`
+                inArray(installments.status, ['pending', 'partially_paid'])
             ))
             .orderBy(asc(installments.dueDate), asc(installments.number))
             .limit(1)
@@ -54,6 +53,36 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
             .limit(1)
 
         const remainingPrincipal = lastRem?.rem ?? d.principal
+
+        if (IS_PROD && (Number(aggr.totalExpected) === 0) && !nextRows[0]) {
+            try {
+                const [cnt] = await db.execute(sql`
+          SELECT COUNT(*)::int AS c
+          FROM ${installments}
+          WHERE ${installments.debtId} = ${id}
+        `)
+                const sample = await db
+                    .select({
+                        id: installments.id,
+                        number: installments.number,
+                        status: installments.status,
+                        dueDate: installments.dueDate,
+                        expectedTotal: installments.expectedTotal
+                    })
+                    .from(installments)
+                    .where(eq(installments.debtId, id))
+                    .orderBy(desc(installments.number))
+                    .limit(3)
+
+                console.warn('[SUMMARY DEBUG]', {
+                    debtId: id,
+                    count: Number((cnt as any)?.c ?? 0),
+                    sample
+                })
+            } catch (e) {
+                console.error('[SUMMARY DEBUG] failed to inspect installments', e)
+            }
+        }
 
         return {
             debt: {
