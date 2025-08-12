@@ -1,4 +1,3 @@
-// src/index.ts
 import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { db } from './db/client'
@@ -17,7 +16,7 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator'
 const ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:3000'
 const port = Number(process.env.APP_PORT ?? 1313)
 const RUN_MIGRATIONS = (process.env.RUN_MIGRATIONS ?? 'true').toLowerCase() === 'true'
-const MIGRATIONS_DIR = process.env.MIGRATIONS_DIR ?? 'drizzle' // keep in sync with Dockerfile
+const MIGRATIONS_DIR = process.env.MIGRATIONS_DIR ?? 'drizzle'
 
 async function waitForDb(maxAttempts = 10) {
     let attempt = 0
@@ -64,10 +63,10 @@ async function bootstrap() {
         .get('/health', () => ({ ok: true, service: 'OweLess-API' }))
         .use(authRoutes)
         .use(meRoutes)
+        .use(debtSummaryRoutes)
         .use(debtRoutes)
         .use(installmentRoutes)
         .use(paymentRoutes)
-        .use(debtSummaryRoutes)
         .use(dashboardRoutes)
         .get('/version', () => ({ version: '0.0.1' }))
         .get('/ping-db', async () => {

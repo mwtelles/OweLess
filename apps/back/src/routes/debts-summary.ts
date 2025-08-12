@@ -40,13 +40,11 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
     .get(
         '/:id/summary',
         async ({ params, userId, set, request }) => {
-            // RequestId do Railway para correlação de logs
             const requestId =
                 request.headers.get('x-railway-request-id') ??
                 request.headers.get('x-request-id') ??
                 undefined
 
-            // 1) Autorização defensiva
             if (!userId) {
                 return sendError(
                     set,
@@ -59,7 +57,6 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
                 )
             }
 
-            // 2) Validação forte do ID
             const rawId = Number(params.id)
             const id = Number.isInteger(rawId) && rawId > 0 ? rawId : NaN
             if (!Number.isFinite(id)) {
@@ -75,7 +72,6 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
             }
 
             try {
-                // 3) Verifica posse da dívida
                 const [d] = await db
                     .select()
                     .from(debts)
@@ -83,7 +79,6 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
                     .limit(1)
 
                 if (!d) {
-                    // 404 para não vazar existência de recurso de outro usuário
                     return sendError(
                         set,
                         404,
@@ -95,7 +90,6 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
                     )
                 }
 
-                // 4) Agregados
                 const [aggr] = await db
                     .select({
                         totalExpected: sql<number>`COALESCE(SUM(${installments.expectedTotal}), 0)`,
@@ -108,7 +102,6 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
                     .from(installments)
                     .where(eq(installments.debtId, id))
 
-                // 5) Próxima parcela
                 const nextRows = await db
                     .select({
                         id: installments.id,
@@ -127,7 +120,6 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
                     .orderBy(asc(installments.dueDate), asc(installments.number))
                     .limit(1)
 
-                // 6) Saldo remanescente
                 const [lastRem] = await db
                     .select({ rem: installments.remainingPrincipalAfter })
                     .from(installments)
@@ -137,7 +129,6 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
 
                 const remainingPrincipal = lastRem?.rem ?? d.principal
 
-                // 7) Diagnóstico opcional (produção controlada por env)
                 if ((IS_PROD || DEBUG_SUMMARY) && Number(aggr.totalExpected) === 0 && !nextRows[0]) {
                     try {
                         const [cnt] = await db.execute(
@@ -166,8 +157,6 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
                             sample
                         })
 
-                        // (Opcional) Se não houver NENHUMA parcela para uma dívida existente,
-                        // você pode sinalizar dado inconsistente com 422.
                         if (Number((cnt as any)?.c ?? 0) === 0) {
                             return sendError(
                                 set,
@@ -187,11 +176,9 @@ export const debtSummaryRoutes = new Elysia({ prefix: '/debts' })
                             debtId: id,
                             error: (e as Error).message
                         })
-                        // não interrompe a resposta principal
                     }
                 }
 
-                // 8) Resposta OK
                 set.status = 200
                 return {
                     debt: {
