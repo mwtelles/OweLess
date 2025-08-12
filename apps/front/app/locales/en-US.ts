@@ -28,6 +28,8 @@ export default {
         title: 'Validation',
         requiredFields: 'Fill required fields.',
         amountRequired: 'Amount is required.',
+        passwordsNotMatch: 'Passwords do not match.',
+        acceptTermsRequired: 'You must accept the terms and conditions.'
     },
     nav: {
         dashboard: 'Dashboard',
@@ -54,7 +56,19 @@ export default {
         forgotPassword: 'Forgot password',
         createAccount: 'Create Account',
         creating: 'Creating account...',
-        alreadyHaveAccount: 'Already have an account?'
+        alreadyHaveAccount: 'Already have an account?',
+        placeholders: {
+            email: 'Enter your email',
+            password: 'Enter your password',
+            confirmPassword: 'Confirm your password'
+        },
+        rememberMe: 'Remember me',
+        loginDescription: 'Access your account to manage your debts and payments.',
+        registerDescription: 'Create an account to start tracking your debts and payments.',
+        registerSuccess: 'Account created successfully! Please log in.',
+        confirmPassword: 'Confirm Password',
+        iAgree: 'I agree to the terms and conditions',
+        termsAndPrivacy: 'Terms and Conditions',
     },
     debts: {
         title: 'Debts',

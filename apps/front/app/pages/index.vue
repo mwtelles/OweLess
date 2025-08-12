@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth-client' })
+definePageMeta({ layout: 'app', middleware: 'auth-client' })
 
 import { ref, onMounted, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'

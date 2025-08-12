@@ -28,6 +28,8 @@ export default {
         title: 'Validação',
         requiredFields: 'Preencha os campos obrigatórios.',
         amountRequired: 'Valor é obrigatório.',
+        passwordsNotMatch: 'As senhas não coincidem.',
+        acceptTermsRequired: 'Você deve aceitar os termos e condições.',
     },
     profile: {
         myAccount: 'Minha Conta',
@@ -54,7 +56,19 @@ export default {
         forgotPassword: 'Esqueci minha senha',
         createAccount: 'Criar Conta',
         creating: 'Criando conta...',
-        alreadyHaveAccount: 'Já tem uma conta?'
+        alreadyHaveAccount: 'Já tem uma conta?',
+        placeholders: {
+            email: 'Digite seu email',
+            password: 'Digite sua senha',
+            confirmPassword: 'Confirme sua senha',
+        },
+        rememberMe: 'Lembrar-me',
+        loginDescription: 'Acesse sua conta para gerenciar suas dívidas e pagamentos.',
+        registerDescription: 'Crie uma conta para começar a acompanhar suas dívidas e pagamentos.',
+        registerSuccess: 'Conta criada com sucesso! Por favor, faça login.',
+        confirmPassword: 'Confirmar Senha',
+        iAgree: 'Eu concordo com os termos e condições',
+        termsAndPrivacy: 'Termos e Condições',
     },
     debts: {
         title: 'Dívidas',
