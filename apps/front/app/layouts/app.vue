@@ -34,8 +34,8 @@
                         </div>
                         <div class="popover-group">
                             <label for="currency">{{ $t('settings.currency') }}</label>
-                            <Dropdown id="currency" v-model="settings.currency" :options="currencies"
-                                optionLabel="label" optionValue="value" class="w-full" />
+                            <Dropdown id="currency" :options="currencies" optionLabel="label" optionValue="value"
+                                class="w-full" />
                         </div>
                     </div>
                 </div>

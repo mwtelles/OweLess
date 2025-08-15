@@ -4,7 +4,14 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   typescript: { strict: true },
-  css: ['~/assets/css/reset.css'],
+  css: [
+    'primeicons/primeicons.css',
+    '~/assets/css/reset.css',
+    '~/assets/css/theme.css',
+    '~/assets/css/layout.css',
+    '~/assets/css/sidebar.css',
+    '~/assets/css/tooltip.css',
+  ],
   modules: [
     '@pinia/nuxt',
     ['@primevue/nuxt-module', {

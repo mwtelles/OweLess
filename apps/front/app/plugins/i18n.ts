@@ -8,14 +8,18 @@ const dictionaries: Record<string, any> = {
 }
 
 function get(obj: any, path: string, fallback?: string) {
-    return path.split('.').reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj) ?? fallback ?? path
+    return path.split('.').reduce(
+        (acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined),
+        obj
+    ) ?? fallback ?? path
 }
 
 export default defineNuxtPlugin(() => {
+    const settings = useSettingsStore()
+
     return {
         provide: {
             t: (key: string, fallback?: string) => {
-                const settings = useSettingsStore()
                 const dict = dictionaries[settings.locale] || enUS
                 return get(dict, key, fallback)
             }
